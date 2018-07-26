@@ -54,6 +54,10 @@ type provisionspec struct {
 	Billingcode string `json:"billingcode"`
 }
 
+// func store(...)
+// TODO: Document
+// TODO: error handling
+// TODO: configure SQL dialect
 func store(cluster string, vhost string, username string, password string, billingcode string) {
 	uri := brokerdb
 	db, err := sql.Open("postgres", uri)
@@ -69,6 +73,10 @@ func store(cluster string, vhost string, username string, password string, billi
 	fmt.Println(newname)
 	err = db.Close()
 }
+
+// func retreive(..)
+// TODO: Document
+// TODO: error handling
 func retreive(v string) (c string, vh string, u string, p string, t []tagspec) {
 	uri := brokerdb
 	db, err := sql.Open("postgres", uri)
@@ -110,6 +118,10 @@ func retreive(v string) (c string, vh string, u string, p string, t []tagspec) {
 	return cluster, vhost, username, Decrypt(password_enc), tagsa
 
 }
+
+// func Delete(..)
+// TODO: Document
+// TODO: error handling
 func Delete(params martini.Params, r render.Render) {
 	err := delete(params["vhost"])
 	if err != nil {
@@ -118,6 +130,10 @@ func Delete(params martini.Params, r render.Render) {
 	r.JSON(200, nil)
 }
 
+// func delete(..)
+// TODO: Document
+// TODO: error handling
+// TODO: rename to avoid conflect with built in function
 func delete(vhost string) error {
 
 	cluster, _, _, _, _ := retreive(vhost)
@@ -160,6 +176,9 @@ func delete(vhost string) error {
 	return nil
 }
 
+// func url(..)
+// TODO: Document
+// TODO: error handling
 func url(params martini.Params, r render.Render) {
 	rcluster, rvhost, rusername, rpassword, _ := retreive(params["name"])
 	url := clusterInfo(rcluster).Amqp
@@ -167,6 +186,10 @@ func url(params martini.Params, r render.Render) {
 	fmt.Println(amqp)
 	r.JSON(200, map[string]string{"RABBITMQ_URL": amqp})
 }
+
+// func provision(..)
+// TODO: Document
+// TODO: error handling
 func provision(spec provisionspec, err binding.Errors, r render.Render) {
 	fmt.Println(spec)
 	cluster := spec.Plan
@@ -184,6 +207,9 @@ func provision(spec provisionspec, err binding.Errors, r render.Render) {
 	r.JSON(201, map[string]string{"RABBITMQ_URL": amqp})
 
 }
+
+// func createuserandpassword(..)
+// TODO: Document
 func createuserandpassword() (ur string, pr string) {
 
 	u, _ := uuid.NewV4()
@@ -193,6 +219,9 @@ func createuserandpassword() (ur string, pr string) {
 	return newusername, newpassword
 }
 
+// func create(..)
+// TODO: Document
+// TODO: error handling
 func create(cluster string, vhost string, newusername string, newpassword string) {
 
 	createvhost(cluster, vhost)
@@ -203,6 +232,9 @@ func create(cluster string, vhost string, newusername string, newpassword string
 	createTestQueue(cluster, vhost, newusername, newpassword)
 }
 
+// func clusterInfo(..)
+// TODO: Document
+// TODO: error handling
 func clusterInfo(cluster string) ClusterInfo {
 	var clusterinfo ClusterInfo
 	//clusterinfo.Url = os.Getenv(strings.ToUpper(cluster) + "_RABBIT_URL")
@@ -217,6 +249,9 @@ func clusterInfo(cluster string) ClusterInfo {
 	return clusterinfo
 }
 
+// func grantUser(..)
+// TODO: Document
+// TODO: error handling
 func grantUser(cluster string, newusername string, vhost string) {
 
 	type Permissions struct {
@@ -249,6 +284,9 @@ func grantUser(cluster string, newusername string, vhost string) {
 
 }
 
+// func grantAdmin(..)
+// TODO: Document
+// TODO: error handling
 func grantAdmin(cluster string, vhost string) {
 
 	type Permissions struct {
@@ -282,6 +320,9 @@ func grantAdmin(cluster string, vhost string) {
 
 }
 
+// func createUser(..)
+// TODO: Document
+// TODO: error handling
 func createUser(cluster string, newusername string, newpassword string) {
 	type User struct {
 		Password string `json:"password"`
@@ -309,6 +350,10 @@ func createUser(cluster string, newusername string, newpassword string) {
 	_, _ = ioutil.ReadAll(response.Body)
 
 }
+
+// func createvhost(..)
+// TODO: Document
+// TODO: error handling
 func createvhost(cluster string, vhost string) {
 	clusterinfo := clusterInfo(cluster)
 	username := clusterinfo.Username
@@ -325,6 +370,9 @@ func createvhost(cluster string, vhost string) {
 	_, _ = ioutil.ReadAll(response.Body)
 }
 
+// func createMirrorPolicy(..)
+// TODO: Document
+// TODO: error handling
 func createMirrorPolicy(cluster string, vhost string) {
 	clusterinfo := clusterInfo(cluster)
 	username := clusterinfo.Username
@@ -368,6 +416,9 @@ func createMirrorPolicy(cluster string, vhost string) {
 	_, _ = ioutil.ReadAll(response.Body)
 }
 
+// func createTestQueue(..)
+// TODO: Document
+// TODO: error handling
 func createTestQueue(cluster string, vhost string, newusername string, newpassword string) {
 
 	type Queue struct {
@@ -397,6 +448,9 @@ func createTestQueue(cluster string, vhost string, newusername string, newpasswo
 
 }
 
+// func Encrypt(..)
+// TODO: Document
+// TODO: error handling
 func Encrypt(plaintext string) string {
 	text := []byte(plaintext)
 	block, err := aes.NewCipher(key)
@@ -413,6 +467,9 @@ func Encrypt(plaintext string) string {
 	return base64.StdEncoding.EncodeToString(ciphertext)
 }
 
+// func Decrypt(..)
+// TODO: Document
+// TODO: error handling
 func Decrypt(b64 string) string {
 	text, _ := base64.StdEncoding.DecodeString(b64)
 	block, err := aes.NewCipher(key)
@@ -429,6 +486,9 @@ func Decrypt(b64 string) string {
 	return string(text)
 }
 
+// func plans(..)
+// TODO: Document
+// TODO: Refactor to use configured plans, not hard-coded
 func plans(params martini.Params, r render.Render) {
 	plans := make(map[string]interface{})
 	plans["sandbox"] = "Dev and Testing and QA and Load testing.  May be purged regularly"
@@ -437,12 +497,17 @@ func plans(params martini.Params, r render.Render) {
 
 }
 
+// struct tagspec(..)
+// TODO: Document
 type tagspec struct {
 	Resource string `json:"resource"`
 	Name     string `json:"name"`
 	Value    string `json:"value"`
 }
 
+// func tag(..)
+// TODO: Document
+// TODO: error handling
 func tag(spec tagspec, berr binding.Errors, r render.Render) {
 	if berr != nil {
 		fmt.Println(berr)
@@ -482,6 +547,9 @@ func tag(spec tagspec, berr binding.Errors, r render.Render) {
 
 }
 
+// func getvaultcreds(..)
+// TODO: Document
+// TODO: error handling
 func getvaultcreds() (u string, p string) {
 	vaulttoken := os.Getenv("VAULT_TOKEN")
 	vaultaddr := os.Getenv("VAULT_ADDR")
@@ -514,6 +582,9 @@ func getvaultcreds() (u string, p string) {
 
 }
 
+// func retreive(..)
+// TODO: Document
+// TODO: Refactor to get dynamic cluster
 func populateClusterInfo() {
 	/*
 	   var sandbox ClusterInfo
