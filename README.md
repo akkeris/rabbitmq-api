@@ -1,5 +1,6 @@
 # RabbitMQ Broker for Akkeris
 
+Create virtural hosts and users in a RabbitMQ Cluster.
 
 ## Run Time Environment
 
@@ -34,7 +35,9 @@ The vault secret must contain these fields:
 
 ### Get list of plans
 
-Get a list of plans that can be used.  Currently these correlate to the cluster names.
+Get a list of plans that can be used.  The plans correlate to the cluster
+names, so each cluster needs to be configured as a plan.  
+The defaults are sandbox and live.
 
 **URL** : `/v1/rabbitmq/plans`
 
@@ -57,7 +60,7 @@ Get a list of plans that can be used.  Currently these correlate to the cluster 
 
 ## Create instance
 
-Create a user and vhost based on plan.
+Create a virtual host and user in the cluster from the plan.
 
 **URL** : `/v1/rabbitmq/instance`
 
@@ -74,7 +77,7 @@ Create a user and vhost based on plan.
 
 ### Success Response
 
-**Condition** User and Vhost created
+**Condition** Virtual host and user created and added to database.
 
 **Code** : `201 CREATED`
 
@@ -94,33 +97,33 @@ Create a user and vhost based on plan.
 
 **Returned Response** : None
 
-## Get queue connection url for user
+## Get queue connection url for virtual host
 
-**URL** : `/v1/rabbitmq/url/:name`
+**URL** : `/v1/rabbitmq/url/:vhost`
 
 **Method** : `GET`
 
 ### Success Response
 
-**Condition** : User found
+**Condition** : Virtual host found
 
 **Content** :
 
 ```json
 {
-  "RABBITMQ_URL":"amqp://username:password@rabbitmq-sandbox.example.io:5672/username"
+  "RABBITMQ_URL":"amqp://username:password@rabbitmq-sandbox.example.io:5672/vhost"
 }
 ```
 
 ### Error Response
 
-**Condition** : user not found in database or rabbitmq cluster
+**Condition** : Virtual host not found
 
 **Code** : `404 Not Found`
 
 ## Delete user and vhost
 
-**URL** : `/v1/rabbitmq/instance/:username`
+**URL** : `/v1/rabbitmq/instance/:vhost`
 
 **URL Parameters** : `username=[string]`
 
@@ -128,7 +131,7 @@ Create a user and vhost based on plan.
 
 ### Success response
 
-**Condition** : User and Vhost deleted from database and rabbitmq
+**Condition** : Virtual host and user deleted from database and rabbitmq cluster.
 
 **Code** : `200 OK`
 
@@ -136,7 +139,7 @@ Create a user and vhost based on plan.
 
 ### Error response >>>**TODO**<<<
 
-**Condition** : User or vhost not found in DB or Rabbitmq cluster
+**Condition** : Virtual host not found in DB
 
 **Code** : `404 Not Found`
 
@@ -149,7 +152,7 @@ Create a user and vhost based on plan.
 **Method** : `POST`
 
 **Data** : 
-* resource: vhost id
+* resource: virtual host name
 * name: tag name
 * value: tag value
 
@@ -163,7 +166,7 @@ Create a user and vhost based on plan.
 	
 ### Success response
 
-**Condition** : Tag added to vhost in database
+**Condition** : Tag was added to virtual host in database
 
 **Code** : `201 Created`
 
@@ -180,3 +183,8 @@ Create a user and vhost based on plan.
 **Condition** : Vhost no in database
 
 **Code** : `404 Not found`
+
+# TODO
+
+* Document structures and functions
+* Add error handling
