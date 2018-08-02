@@ -37,6 +37,24 @@ var key []byte
 var brokerdb string
 
 func main() {
+	uri := brokerdb
+	db, err := sql.Open("postgres", uri)
+	if err != nil {
+		fmt.Println(err)
+	}
+	//create database if it doesn't exist
+	buf, err := ioutil.ReadFile("create.sql")
+	if err != nil {
+		fmt.Println("Error: Unable to run migration scripts, oculd not load create.sql.")
+		os.Exit(1)
+	}
+	_, err = db.Query(string(buf))
+	if err != nil {
+		fmt.Println(err)
+		fmt.Println("Error: Unable to run migration scripts, execution failed.")
+		os.Exit(1)
+	}
+
 	populateClusterInfo()
 	m := martini.Classic()
 	m.Use(render.Renderer())
@@ -361,7 +379,7 @@ func createvhost(cluster string, vhost string) {
 	auth := base64.StdEncoding.EncodeToString([]byte(username + ":" + password))
 
 	client := &http.Client{}
-	fmt.Println("http://"+clusterinfo.Url+":15672/api/vhosts/"+vhost)
+	fmt.Println("http://" + clusterinfo.Url + ":15672/api/vhosts/" + vhost)
 	request, _ := http.NewRequest("PUT", "http://"+clusterinfo.Url+":15672/api/vhosts/"+vhost, nil)
 	request.Header.Add("Authorization", "Basic "+auth)
 	request.Header.Add("Content-type", "application/json")
