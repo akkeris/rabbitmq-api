@@ -42,6 +42,8 @@ func main() {
 	if err != nil {
 		fmt.Println(err)
 	}
+	defer db.Close()
+
 	//create database if it doesn't exist
 	buf, err := ioutil.ReadFile("create.sql")
 	if err != nil {
