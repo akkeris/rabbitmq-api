@@ -1,7 +1,6 @@
 FROM golang:1.9-alpine
 FROM golang:1.9-alpine as builder
 
-
 ARG APPNAME=rabbitmq-api
 
 RUN apk update; \
@@ -28,6 +27,7 @@ RUN apk update; \
 WORKDIR /app
 
 COPY --from=builder /go/src/${APPNAME}/${APPNAME} .
+COPY --from=builder /go/src/${APPNAME}/create.sql .
 
 EXPOSE 3300
 
