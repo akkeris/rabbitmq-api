@@ -37,7 +37,7 @@ var key []byte
 var brokerdb string
 
 func main() {
-	populateClusterInfo()
+	adminuser, adminpass := getvaultcreds()
 
 	uri := brokerdb
 	db, err := sql.Open("postgres", uri)
@@ -59,6 +59,7 @@ func main() {
 		os.Exit(1)
 	}
 
+	populateClusterInfo(adminuser, adminpass)
 	m := martini.Classic()
 	m.Use(render.Renderer())
 	m.Get("/v1/rabbitmq/plans", plans)
@@ -606,7 +607,7 @@ func getvaultcreds() (u string, p string) {
 // func retreive(..)
 // TODO: Document
 // TODO: Refactor to get dynamic cluster
-func populateClusterInfo() {
+func populateClusterInfo(adminuser string, adminpass string) {
 	/*
 	   var sandbox ClusterInfo
 	     var live    ClusterInfo
@@ -628,7 +629,6 @@ func populateClusterInfo() {
 	       clusters=append(clusters, sandbox)
 	       clusters=append(clusters, live)
 	*/
-	adminuser, adminpass := getvaultcreds()
 	clusterstoload := strings.Split((os.Getenv("CLUSTERS")), ",")
 	fmt.Println("Loading clusters: " + strings.Join(clusterstoload, ","))
 	for _, element := range clusterstoload {
