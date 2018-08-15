@@ -37,6 +37,8 @@ var key []byte
 var brokerdb string
 
 func main() {
+	populateClusterInfo()
+
 	uri := brokerdb
 	db, err := sql.Open("postgres", uri)
 	if err != nil {
@@ -57,7 +59,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	populateClusterInfo()
 	m := martini.Classic()
 	m.Use(render.Renderer())
 	m.Get("/v1/rabbitmq/plans", plans)
