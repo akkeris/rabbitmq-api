@@ -36,7 +36,9 @@ var clusters []ClusterInfo
 var key []byte
 var brokerdb string
 
-func main() {
+// Init function
+// gets credentials from vault, creates database, populates cluster info
+func Init() {
 	adminuser, adminpass := getvaultcreds()
 
 	uri := brokerdb
@@ -60,6 +62,10 @@ func main() {
 	}
 
 	populateClusterInfo(adminuser, adminpass)
+}
+
+func main() {
+	Init()
 	m := martini.Classic()
 	m.Use(render.Renderer())
 	m.Get("/v1/rabbitmq/plans", plans)
