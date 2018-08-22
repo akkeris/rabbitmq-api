@@ -54,7 +54,7 @@ func Init() {
 		fmt.Println("Error: Unable to run migration scripts, oculd not load create.sql.")
 		os.Exit(1)
 	}
-	_, err = db.Query(string(buf))
+	_, err = db.Exec(string(buf))
 	if err != nil {
 		fmt.Println(err)
 		fmt.Println("Error: Unable to run migration scripts, execution failed.")
