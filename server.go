@@ -243,7 +243,7 @@ func createuserandpassword() (ur string, pr string) {
 	u, _ := uuid.NewV4()
 	newusername := "u" + strings.Split(u.String(), "-")[0]
 	p, _ := uuid.NewV4()
-	newpassword := "p" + strings.Split(p.String(), "-")[0]
+	newpassword := "p" + strings.Split(p.String(), "-")[0]+strings.Split(p.String(), "-")[1]+strings.Split(p.String(), "-")[2]
 	return newusername, newpassword
 }
 
