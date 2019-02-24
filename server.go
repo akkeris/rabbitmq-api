@@ -519,8 +519,12 @@ func Decrypt(b64 string) string {
 // TODO: Refactor to use configured plans, not hard-coded
 func plans(params martini.Params, r render.Render) {
 	plans := make(map[string]interface{})
+     if strings.Contains(os.Getenv("CLUSTERS"),"sandbox"){
 	plans["sandbox"] = "Dev and Testing and QA and Load testing.  May be purged regularly"
+      }
+     if strings.Contains(os.Getenv("CLUSTERS"),"live"){
 	plans["live"] = "Prod and real use. Bigger cluster.  Not purged"
+     }
 	r.JSON(200, plans)
 
 }
