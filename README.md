@@ -7,9 +7,10 @@ Create virtural hosts and users in a RabbitMQ Cluster.
 * CLUSTERS: Comma seperated list of rabbitmq clusters. Ex: sandbox,live
 * LIVE_RABBIT_AMQP: hostname to access queues in cluster 'live'. See below
 * LIVE_RABBIT_URL: hostname to access management api in cluster 'live'.
-* RABBITMQ_SECRET: Vault path to secret. Ex: secret/to/rabbitmq-api/admin/secrets
-* VAULT_ADDR: Full url to vault. Ex: https://vault.example.io
-* VAULT_TOKEN: Access token for vault.
+* RABBITMQ_ADMIN_USERNAME: the admin username on the rabbitmq clusters
+* RABBITMQ_ADMIN_PASSWORD: the admin password on the rabbitmq cluseters
+* ENCRYPT_KEY: key used to set passwords in DB (24 characters)
+* DATABASE_URL: broker db
 * PORT: Port to access this api.  Default is 3000 (See [Go Martini](https://github.com/go-martini/martini))
 
 ### For each cluster
@@ -20,16 +21,6 @@ Create virtural hosts and users in a RabbitMQ Cluster.
 * [CLUSTER_NAME]_RABBIT_AMQP - Queues hostname
     * Ex: LIVE_RABBIT_AMQP=rabbitmq-prod.example.com
     * Ex: SANDBOX_RABBIT_AMQP=rabbitmq-sandbox.example.io
-
-### Vault secret
-
-The vault secret must contain these fields:
-* brokerdb: URL for postgress database that stores created rabbitmq users/virtual hosts
-    * postgres://username:password@brokerdb.example.io:5432/dbname
-* key: 32 byte key used to encrypt rabbitmq user password to store in database
-    * "this is thirty-two characters 32"
-* username: Username for rabbitmq cluster that has admin privileges 
-* password: Password for rabbitmq admin user
 
 ## API
 

@@ -17,7 +17,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/bitly/go-simplejson"
 	"github.com/go-martini/martini"
 	_ "github.com/lib/pq"
 	"github.com/martini-contrib/render"
@@ -37,10 +36,10 @@ var key []byte
 var brokerdb string
 
 // Init function
-// gets credentials from vault, creates database, populates cluster info
 func Init() {
-	adminuser, adminpass := getvaultcreds()
-
+	adminuser, adminpass := getadmincreds()
+	brokerdb = os.Getenv("DATABASE_URL")
+	key = []byte(os.Getenv("ENCRYPT_KEY"))
 	uri := brokerdb
 	db, err := sql.Open("postgres", uri)
 	if err != nil {
@@ -243,7 +242,7 @@ func createuserandpassword() (ur string, pr string) {
 	u, _ := uuid.NewV4()
 	newusername := "u" + strings.Split(u.String(), "-")[0]
 	p, _ := uuid.NewV4()
-	newpassword := "p" + strings.Split(p.String(), "-")[0]+strings.Split(p.String(), "-")[1]+strings.Split(p.String(), "-")[2]
+	newpassword := "p" + strings.Split(p.String(), "-")[0] + strings.Split(p.String(), "-")[1] + strings.Split(p.String(), "-")[2]
 	return newusername, newpassword
 }
 
@@ -390,12 +389,22 @@ func createvhost(cluster string, vhost string) {
 
 	client := &http.Client{}
 	fmt.Println("http://" + clusterinfo.Url + ":15672/api/vhosts/" + vhost)
-	request, _ := http.NewRequest("PUT", "http://"+clusterinfo.Url+":15672/api/vhosts/"+vhost, nil)
+	request, err := http.NewRequest("PUT", "http://"+clusterinfo.Url+":15672/api/vhosts/"+vhost, nil)
+	if err != nil {
+		fmt.Println(err)
+	}
 	request.Header.Add("Authorization", "Basic "+auth)
 	request.Header.Add("Content-type", "application/json")
-	response, _ := client.Do(request)
+	response, err := client.Do(request)
+	if err != nil {
+		fmt.Println(err)
+	}
 	defer response.Body.Close()
-	_, _ = ioutil.ReadAll(response.Body)
+	bodybytes, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(string(bodybytes))
 }
 
 // func createMirrorPolicy(..)
@@ -519,12 +528,12 @@ func Decrypt(b64 string) string {
 // TODO: Refactor to use configured plans, not hard-coded
 func plans(params martini.Params, r render.Render) {
 	plans := make(map[string]interface{})
-     if strings.Contains(os.Getenv("CLUSTERS"),"sandbox"){
-	plans["sandbox"] = "Dev and Testing and QA and Load testing.  May be purged regularly"
-      }
-     if strings.Contains(os.Getenv("CLUSTERS"),"live"){
-	plans["live"] = "Prod and real use. Bigger cluster.  Not purged"
-     }
+	if strings.Contains(os.Getenv("CLUSTERS"), "sandbox") {
+		plans["sandbox"] = "Dev and Testing and QA and Load testing.  May be purged regularly"
+	}
+	if strings.Contains(os.Getenv("CLUSTERS"), "live") {
+		plans["live"] = "Prod and real use. Bigger cluster.  Not purged"
+	}
 	r.JSON(200, plans)
 
 }
@@ -579,37 +588,12 @@ func tag(spec tagspec, berr binding.Errors, r render.Render) {
 
 }
 
-// func getvaultcreds(..)
+// func getadmincreds(..)
 // TODO: Document
 // TODO: error handling
-func getvaultcreds() (u string, p string) {
-	vaulttoken := os.Getenv("VAULT_TOKEN")
-	vaultaddr := os.Getenv("VAULT_ADDR")
-	fmt.Println(vaulttoken)
-	rabbitmqsecret := os.Getenv("RABBITMQ_SECRET")
-	fmt.Println(rabbitmqsecret)
-	vaultaddruri := vaultaddr + "/v1/" + rabbitmqsecret
-	vreq, err := http.NewRequest("GET", vaultaddruri, nil)
-	vreq.Header.Add("X-Vault-Token", vaulttoken)
-	vclient := &http.Client{}
-	vresp, err := vclient.Do(vreq)
-	if err != nil {
-		fmt.Println(err)
-	}
-	defer vresp.Body.Close()
-	bodyj, err := simplejson.NewFromReader(vresp.Body)
-	fmt.Println(bodyj)
-	if err != nil {
-		fmt.Println(err)
-	}
-	fmt.Println(bodyj)
-	adminusername, _ := bodyj.Get("data").Get("username").String()
-	adminpassword, _ := bodyj.Get("data").Get("password").String()
-	keystring, _ := bodyj.Get("data").Get("key").String()
-	key = []byte(keystring)
-	brokerdb, _ = bodyj.Get("data").Get("brokerdb").String()
-	fmt.Println(adminusername)
-	fmt.Println(adminpassword)
+func getadmincreds() (u string, p string) {
+	adminusername := os.Getenv("RABBITMQ_ADMIN_USERNAME")
+	adminpassword := os.Getenv("RABBITMQ_ADMIN_PASSWORD")
 	return adminusername, adminpassword
 
 }
@@ -618,27 +602,6 @@ func getvaultcreds() (u string, p string) {
 // TODO: Document
 // TODO: Refactor to get dynamic cluster
 func populateClusterInfo(adminuser string, adminpass string) {
-	/*
-	   var sandbox ClusterInfo
-	     var live    ClusterInfo
-
-	       adminuser, adminpass := getvaultcreds()
-	       fmt.Println(adminuser)
-	       fmt.Println(adminpass)
-	       sandbox.Url = os.Getenv("SANDBOX_RABBIT_URL")
-	       sandbox.Username = adminuser
-	       sandbox.Password = adminpass
-	       sandbox.Amqp = os.Getenv("SANDBOX_RABBIT_AMQP")
-	       sandbox.Cluster = "sandbox"
-
-	       live.Url = os.Getenv("LIVE_RABBIT_URL")
-	       live.Username = adminuser
-	       live.Password = adminpass
-	       live.Amqp = os.Getenv("LIVE_RABBIT_AMQP")
-	       live.Cluster = "live"
-	       clusters=append(clusters, sandbox)
-	       clusters=append(clusters, live)
-	*/
 	clusterstoload := strings.Split((os.Getenv("CLUSTERS")), ",")
 	fmt.Println("Loading clusters: " + strings.Join(clusterstoload, ","))
 	for _, element := range clusterstoload {
